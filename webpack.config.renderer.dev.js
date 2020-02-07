@@ -1,3 +1,4 @@
+// @flow
 /* eslint global-require: 0, import/no-dynamic-require: 0 */
 
 /**
@@ -30,11 +31,6 @@ const requiredByDLLConfig = module.parent.filename.includes(
  * Warn if the DLL is not built
  */
 if (!requiredByDLLConfig && !(fs.existsSync(dll) && fs.existsSync(manifest))) {
-  console.log(
-    chalk.black.bgYellow.bold(
-      'The DLL files are missing. Sit back while we build them for you with "yarn build-dll"'
-    )
-  );
   execSync('yarn build-dll');
 }
 
@@ -200,6 +196,10 @@ export default merge.smart(baseConfig, {
       {
         test: /\.(?:ico|gif|png|jpg|jpeg|webp)$/,
         use: 'url-loader'
+      },
+      {
+        test: /\.mp3(\?v=\d+\.\d+\.\d+)?$/,
+        use: 'file-loader'
       }
     ]
   },
@@ -267,14 +267,13 @@ export default merge.smart(baseConfig, {
     },
     before() {
       if (process.env.START_HOT) {
-        console.log('Starting Main Process...');
         spawn('npm', ['run', 'start-main-dev'], {
           shell: true,
           env: process.env,
           stdio: 'inherit'
         })
           .on('close', code => process.exit(code))
-          .on('error', spawnError => console.error(spawnError));
+          .on('error', spawnError => {});
       }
     }
   }

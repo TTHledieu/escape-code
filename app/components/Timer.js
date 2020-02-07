@@ -4,10 +4,14 @@ import * as React from 'react';
 
 type Props = {|
   timer: number,
-  style?: {}
+  style?: {},
+  onEnd: () => void,
+  onNearEnd?: () => void,
+  stop?: boolean
 |};
 
 type State = {|
+  interval: ?IntervalID,
   time: {
     minutes: number,
     seconds: number
@@ -24,6 +28,7 @@ class Timer extends React.PureComponent<Props, State> {
     super(props);
 
     this.state = {
+      interval: null,
       time: {
         minutes: -1,
         seconds: -1
@@ -59,13 +64,17 @@ class Timer extends React.PureComponent<Props, State> {
   };
 
   startTimer = () => {
-    setInterval(this.countDown, 1000);
+    const interval = setInterval(this.countDown, 1000);
+    this.setState({ interval });
   };
 
   countDown = () => {
     const { timeTotal } = this.state;
     const timeLeft = timeTotal - 1;
 
+    if (timeLeft === 900) {
+      this.props.onNearEnd && this.props.onNearEnd();
+    }
     this.setState(
       () => ({
         time: this.secondsToTime(timeLeft),
@@ -73,7 +82,8 @@ class Timer extends React.PureComponent<Props, State> {
       }),
       () => {
         if (this.state.timeTotal === 0) {
-          console.log('game over');
+          window.clearInterval(this.state.interval);
+          this.props.onEnd();
         }
       }
     );
@@ -89,6 +99,10 @@ class Timer extends React.PureComponent<Props, State> {
       '0',
       2
     )}:${this.formatTime(seconds, '0', 2)}`;
+    if (this.props.stop) {
+      window.clearInterval(this.state.interval);
+    }
+
     return <span style={this.props.style}>{formattedTime}</span>;
   }
 }
